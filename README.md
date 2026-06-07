@@ -119,18 +119,86 @@ Open your browser and navigate to **`http://localhost:3000`** to view the applic
 
 ---
 
-## ⚖️ Testing the Core Flow (Client & Freelancer)
+## ⚖️ Detailed Step-by-Step Testing Guide
 
-To verify the platform's Web3 integration:
-1. **Register two profiles**:
-   - Register an account as a **Company** and link the `Hardhat Employer` MetaMask wallet address to its profile.
-   - Register another account as a **Freelancer** and link the `Hardhat Freelancer` MetaMask wallet address to its profile.
-2. **Post a Job**:
-   - Log in as the **Company**. Post a new job with a defined milestone budget.
-3. **Apply**:
-   - Log in as the **Freelancer**. Find the posted job, submit a proposal, and apply.
-4. **Hire & Lock Escrow**:
-   - Log in as the **Company**. Open the applications for the job, click **Hire with Web3 Escrow**.
-   - MetaMask will prompt you to connect your `Hardhat Employer` wallet, specify the escrow amount in ETH, and lock the funds into the smart contract.
-5. **Complete Work**:
-   - Once completed, the **Company** releases the escrow on-chain. This transfers the ETH to the freelancer's address and automatically mints a non-transferable Reputation NFT to the freelancer's wallet.
+To thoroughly test the platform's core Web3 features, you will simulate both a **Company (Employer)** and a **Freelancer** interacting. It is recommended to use two different browser sessions (e.g., Google Chrome in normal mode for the Employer and Chrome in Incognito mode for the Freelancer) to run the test flows concurrently.
+
+---
+
+### Flow A: Successful Milestone Payout & Reputation NFT Minting
+
+Follow these steps to post a job, fund the escrow contract, complete the contract, and verify the minted reputation NFT.
+
+#### 1. Setup the Profiles
+1. **Employer Profile**:
+   - In Browser #1, go to `http://localhost:3000/register`.
+   - Create an account with the role **Company**.
+   - Navigate to `/profile`. Click **Connect Wallet** and select MetaMask (make sure you are connected to the `Hardhat Employer` account you imported).
+   - Save the wallet address on your profile.
+2. **Freelancer Profile**:
+   - In Browser #2 (Incognito), go to `http://localhost:3000/register`.
+   - Create an account with the role **Freelancer**.
+   - Navigate to `/profile`. Click **Connect Wallet** and select MetaMask (make sure you are connected to the `Hardhat Freelancer` account).
+   - Save the wallet address on your profile.
+
+#### 2. Create and Apply for a Job
+1. **Post the Job (Employer)**:
+   - On the Employer dashboard (Browser #1), click **Post a Job**.
+   - Fill in the details:
+     - **Title**: `Frontend UI React Engineer`
+     - **Description**: `Overhaul UI using modern design system tokens.`
+     - **Budget**: `5` (this represents 5 ETH).
+   - Submit the form.
+2. **Apply (Freelancer)**:
+   - On the Freelancer dashboard (Browser #2), click **Available Jobs**.
+   - Find the `Frontend UI React Engineer` job and click **Apply**.
+   - Write a cover letter and provide a mock resume link, then click **Submit Application**.
+
+#### 3. Hire & Lock Escrow (Employer)
+1. In Browser #1 (Employer), go to the **Hiring** tab.
+2. Under the job applications list, locate the application from your freelancer.
+3. Click **Hire with Web3 Escrow**.
+4. MetaMask will pop up asking to connect your `Hardhat Employer` wallet.
+5. In the modal, verify the freelancer's wallet address and the escrow amount (5 ETH).
+6. Click **Review & Lock Escrow** -> **Confirm Escrow**.
+7. MetaMask will prompt you to confirm a transaction to the `JobEscrow` smart contract. Click **Confirm**.
+8. Once the transaction completes, the contract status changes to `in progress` (Ongoing) and the 5 ETH is locked securely in the blockchain escrow.
+
+#### 4. Complete & Release Payout (Employer)
+1. Once the freelancer finishes the work, navigate to the **Active Contracts** page on the Employer side (Browser #1).
+2. Locate the ongoing contract for `Frontend UI React Engineer`.
+3. Click **Complete on Blockchain**.
+4. MetaMask will pop up. Choose a rating (e.g., `5` stars) and confirm the release transaction.
+5. Once confirmed:
+   - The 5 ETH locked in the escrow contract is instantly sent to the freelancer's wallet address.
+   - A non-transferable **Reputation NFT** containing the metadata (Job Title, client name, feedback, and 5-star rating) is minted and sent to the freelancer.
+
+#### 5. Verify the Reputation NFT (Freelancer)
+1. Switch to Browser #2 (Freelancer).
+2. Go to the **Reputation** page.
+3. You will see a beautiful **Work Certificate** showing your newly minted NFT with:
+   - Gold/Platinum border (for 5-star rating).
+   - Client feedback and rating stars.
+   - Verified budget and contract ID link.
+
+---
+
+### Flow B: Escrow Dispute & DAO Arbitration
+
+Follow these steps to test the dispute resolution protocol where community voters settle a payout discrepancy.
+
+#### 1. Setup another Contract
+1. Repeat **Steps 1-3** in Flow A above to create a second contract and lock funds (e.g. 3 ETH) in escrow.
+
+#### 2. Raise a Dispute (Employer)
+1. In Browser #1 (Employer), go to the **Active Contracts** page.
+2. Locate the ongoing contract and click **Dispute on Blockchain**.
+3. MetaMask will prompt you. Enter a reason (e.g., `Freelancer did not submit source code deliverables`) and confirm the transaction.
+4. Once completed, the escrow contract state moves to `disputed`. The funds are locked in the blockchain, and an active voting proposal is automatically created in the **DAO Governance** system.
+
+#### 3. Vote on the Dispute (DAO Voters)
+1. Switch your MetaMask account to a third pre-funded account (e.g., `Account #2` from your Hardhat list) to act as an independent voter.
+2. In your browser, navigate to the **DAO** page (`http://localhost:3000/dao`).
+3. You will see the active proposal for the disputed contract, along with the dispute reason.
+4. Click **Pay Freelancer** or **Refund Employer** to submit your vote on-chain.
+5. Once the voting duration expires, the majority decision is executed, and the smart contract automatically releases the locked 3 ETH to the winning party.
