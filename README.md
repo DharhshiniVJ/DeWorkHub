@@ -183,22 +183,30 @@ Follow these steps to post a job, fund the escrow contract, complete the contrac
 
 ---
 
-### Flow B: Escrow Dispute & DAO Arbitration
+### Flow B: Mutual-Consent Escrow Dispute & DAO Arbitration
 
-Follow these steps to test the dispute resolution protocol where community voters settle a payout discrepancy.
+Follow these steps to test the dispute resolution protocol where both parties consent to escalate a dispute and community voters settle the payout on-chain.
 
 #### 1. Setup another Contract
-1. Repeat **Steps 1-3** in Flow A above to create a second contract and lock funds (e.g. 3 ETH) in escrow.
+1. Repeat **Steps 1-3** in Flow A above to create a second contract and lock funds (e.g., 3 ETH) in escrow.
 
 #### 2. Raise a Dispute (Employer)
 1. In Browser #1 (Employer), go to the **Active Contracts** page.
 2. Locate the ongoing contract and click **Dispute on Blockchain**.
-3. MetaMask will prompt you. Enter a reason (e.g., `Freelancer did not submit source code deliverables`) and confirm the transaction.
-4. Once completed, the escrow contract state moves to `disputed`. The funds are locked in the blockchain, and an active voting proposal is automatically created in the **DAO Governance** system.
+3. MetaMask will prompt you to connect. Enter a reason (e.g., `Freelancer did not submit source code deliverables`) and confirm the transaction.
+4. Once completed, the contract state moves to **Pending Dispute** (or `pending_dispute`). The escrow remains locked, but no proposal is created yet because it requires mutual consent.
 
-#### 3. Vote on the Dispute (DAO Voters)
+#### 3. Approve the Dispute (Freelancer)
+1. Switch to Browser #2 (Freelancer). Go to the **Active Contracts** page.
+2. Locate the contract. You will see its status is **Dispute Pending Approval**.
+3. Click **Manage Dispute on Blockchain**.
+4. In the modal, you will see the Employer's dispute reason. 
+5. Click **Approve Dispute** and confirm the transaction in MetaMask (using your `Hardhat Freelancer` account).
+6. Once the freelancer approves, the contract status changes to **Dispute Active** (`disputed`), and a voting proposal is automatically created in the **DAO Governance** system.
+
+#### 4. Vote on the Dispute (DAO Voters)
 1. Switch your MetaMask account to a third pre-funded account (e.g., `Account #2` from your Hardhat list) to act as an independent voter.
 2. In your browser, navigate to the **DAO** page (`http://localhost:3000/dao`).
-3. You will see the active proposal for the disputed contract, along with the dispute reason.
+3. You will see the active proposal for the disputed contract, displaying the dispute reason and the response.
 4. Click **Pay Freelancer** or **Refund Employer** to submit your vote on-chain.
-5. Once the voting duration expires, the majority decision is executed, and the smart contract automatically releases the locked 3 ETH to the winning party.
+5. Once the voting duration expires (you can fast-forward time on your local node by running `npx hardhat run scripts/fast-forward.ts --network localhost`), the majority decision is executed, and the smart contract automatically releases the locked 3 ETH to the winner.
